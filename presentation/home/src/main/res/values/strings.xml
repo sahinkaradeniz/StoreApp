@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="retry">Retry</string>
+    <string name="search">Search</string>
+    <string name="clear">Clear</string>
+    <string name="filter">Filter</string>
+    <string name="sort">Sort</string>
+    <string name="sorting_options">Sorting Options</string>
+</resources>
