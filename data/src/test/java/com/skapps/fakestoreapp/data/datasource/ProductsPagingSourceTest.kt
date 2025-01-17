@@ -1,6 +1,5 @@
 package com.skapps.fakestoreapp.data.datasource
 
-// Gerekli import'lar
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
@@ -29,16 +28,10 @@ import retrofit2.Response
 
 class ProductsPagingSourceTest {
 
-    // Test edilecek sınıfın bağımlılıklarını mockluyoruz
     private val mockRemoteSource = mockk<ProductsRemoteSource>()
 
-    // Test edilecek ana sınıfımız
     private lateinit var pagingSource: ProductsPagingSource
 
-    /**
-     * Her test öncesinde çalışacak hazırlık metodu.
-     * Her test için temiz bir başlangıç durumu sağlar.
-     */
     @Before
     fun setup() {
         pagingSource = ProductsPagingSource(
@@ -48,10 +41,6 @@ class ProductsPagingSourceTest {
         )
     }
 
-    /**
-     * Test verilerini oluşturan yardımcı metod.
-     * Testlerde kullanılacak örnek ürün verilerini sağlar.
-     */
     private fun createTestProducts() = listOf(
         ProductDto(
             id = 1,
@@ -81,10 +70,7 @@ class ProductsPagingSourceTest {
         )
     )
 
-    /**
-     * Başarılı API yanıtı durumunda PagingSource'un davranışını test eder.
-     * Sıralama, sayfalama ve veri dönüşümü kontrol edilir.
-     */
+
     @Test
     fun `load should return sorted products when response is successful`() = runTest {
         // ARRANGE
@@ -96,7 +82,6 @@ class ProductsPagingSourceTest {
             limit = 10
         )
 
-        // Mock remote source davranışını tanımla
         coEvery {
             mockRemoteSource.getAllProducts(
                 skip = any(),
@@ -112,16 +97,14 @@ class ProductsPagingSourceTest {
             placeholdersEnabled = false
         )
 
-        // ACT
         val result = pagingSource.load(params)
 
-        // ASSERT
-        assertTrue("Sonuç Page tipinde olmalı", result is PagingSource.LoadResult.Page)
+        assertTrue("Result must be in Page type", result is PagingSource.LoadResult.Page)
         result as PagingSource.LoadResult.Page
 
 
-        assertNull("İlk sayfanın prevKey değeri null olmalı", result.prevKey)
-        assertEquals("Sonraki sayfa 2 olmalı", 2, result.nextKey)
+        assertNull("The prevKey of the first page must be null", result.prevKey)
+        assertEquals("Next page 2 should be", 2, result.nextKey)
 
         coVerify {
             mockRemoteSource.getAllProducts(
@@ -133,13 +116,9 @@ class ProductsPagingSourceTest {
         }
     }
 
-    /**
-     * API'den boş liste dönmesi durumunun testi.
-     * Boş sayfa ve sayfalama mantığı kontrol edilir.
-     */
+
     @Test
     fun `load should handle empty response correctly`() = runTest {
-        // ARRANGE
         val emptyResponse = ProductsResponseDto(
             products = emptyList(),
             total = 0,
@@ -157,24 +136,18 @@ class ProductsPagingSourceTest {
             placeholdersEnabled = false
         )
 
-        // ACT
         val result = pagingSource.load(params)
 
-        // ASSERT
-        assertTrue("Sonuç Page tipinde olmalı", result is PagingSource.LoadResult.Page)
+        assertTrue("Result must be in Page type", result is PagingSource.LoadResult.Page)
         result as PagingSource.LoadResult.Page
 
-        assertTrue("Data listesi boş olmalı", result.data.isEmpty())
-        assertNull("Boş liste için nextKey null olmalı", result.nextKey)
+        assertTrue("Data list must be empty", result.data.isEmpty())
+        assertNull("NextKey must be null for empty list", result.nextKey)
     }
 
-    /**
-     * Network hatası durumunun testi.
-     * Exception handling kontrol edilir.
-     */
+
     @Test
     fun `load should handle network exceptions`() = runTest {
-        // ARRANGE
         coEvery {
             mockRemoteSource.getAllProducts(any(), any(), any(), any())
         } throws Exception("Network error")
@@ -185,23 +158,18 @@ class ProductsPagingSourceTest {
             placeholdersEnabled = false
         )
 
-        // ACT
         val result = pagingSource.load(params)
 
-        // ASSERT
-        assertTrue("Sonuç Error tipinde olmalı", result is PagingSource.LoadResult.Error)
+        assertTrue("Result must be of type Error", result is PagingSource.LoadResult.Error)
         result as PagingSource.LoadResult.Error
 
         assertTrue(
-            "Hata mesajı 'Network error' içermeli",
+            "Error message must contain 'Network error'",
             result.throwable.message?.contains("Network error") == true
         )
     }
 
-    /**
-     * Başarısız API yanıtının (örn. 404) testi.
-     * Hata durumu yönetimi kontrol edilir.
-     */
+
     @Test
     fun `load should handle unsuccessful response`() = runTest {
         // ARRANGE
@@ -223,20 +191,14 @@ class ProductsPagingSourceTest {
             placeholdersEnabled = false
         )
 
-        // ACT
         val result = pagingSource.load(params)
 
-        // ASSERT
-        assertTrue("Sonuç Error tipinde olmalı", result is PagingSource.LoadResult.Error)
+        assertTrue("Result must be of type Error", result is PagingSource.LoadResult.Error)
     }
 
-    /**
-     * Sayfa yenileme anahtarının hesaplanmasının testi.
-     * PagingSource'un refresh mantığı kontrol edilir.
-     */
+
     @Test
     fun `getRefreshKey should return correct page key`() {
-        // ARRANGE
         val state = mockk<PagingState<Int, ProductEntity>>()
         val page = mockk<PagingSource.LoadResult.Page<Int, ProductEntity>>()
 
@@ -245,11 +207,9 @@ class ProductsPagingSourceTest {
         every { page.prevKey } returns 1
         every { page.nextKey } returns 3
 
-        // ACT
         val refreshKey = pagingSource.getRefreshKey(state)
 
-        // ASSERT
-        assertEquals("RefreshKey orta sayfa olmalı", 2, refreshKey)
+        assertEquals("RefreshKey should be centerfold", 2, refreshKey)
     }
 
 
